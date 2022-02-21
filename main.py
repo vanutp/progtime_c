@@ -1,3 +1,12 @@
-print('Hello, world!')
-name = input('Enter your name: ')
-print('Hello,', name)
+import uvicorn
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get('/')
+def index():
+    return 'Hello, world!'
+
+
+uvicorn.run(app)
