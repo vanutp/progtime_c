@@ -1,1 +1,1 @@
-hgdjajs
+print('Hello, world!')
