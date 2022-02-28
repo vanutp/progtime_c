@@ -4,6 +4,8 @@ import uvicorn
 from fastapi import FastAPI, Body
 import sqlite3
 
+from starlette.responses import PlainTextResponse
+
 app = FastAPI()
 
 
@@ -65,13 +67,25 @@ def login(username: str = Body(...), password: str = Body(...)):
     )
 
 
-@app.post('/test')
-def test():
+@app.post('/register')
+def register(username: str = Body(...), password: str = Body(...)):
+    user = db_action(
+        '''
+            select * from users where username = ?
+        ''',
+        (username,),
+        DBAction.fetchone,
+    )
+    if user:
+        return {
+            'error': 'Пользователь уже существует'
+        }
+
     return db_action(
         '''
-            insert into users (username, password) values ('test', 'password')
+            insert into users (username, password) values (?, ?)
         ''',
-        (),
+        (username, password),
         DBAction.commit,
     )
 
