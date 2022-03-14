@@ -1,10 +1,13 @@
+import sqlite3
 from enum import Enum, auto
 
+import jose.exceptions
 import uvicorn
-from fastapi import FastAPI, Body
-import sqlite3
+from fastapi import FastAPI, Body, Depends, Header
+from fastapi.exceptions import HTTPException
+from jose import jwt
 
-from starlette.responses import PlainTextResponse
+import config
 
 app = FastAPI()
 
@@ -51,20 +54,49 @@ def create_db():
     conn.close()
 
 
+def get_user(authorization: str = Header(...)):
+    try:
+        user_id = jwt.decode(authorization, config.SECRET, algorithms=['HS256'])['id']
+    except jose.exceptions.JWTError:
+        raise HTTPException(
+            status_code=400,
+            detail='Неверный токен'
+        )
+
+    user = db_action(
+        '''
+            select * from users where id = ?
+        ''',
+        (user_id,),
+        DBAction.fetchone,
+    )
+    return user
+
+
 @app.get('/')
-def index():
-    return 'Hello, world!'
+def index(user: list = Depends(get_user)):
+    return user[1]
 
 
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
-    return db_action(
+    user = db_action(
         '''
             select * from users where username = ? and password = ?
         ''',
         (username, password),
         DBAction.fetchone,
     )
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail='Пользователь не найден'
+        )
+
+    token = jwt.encode({'id': user[0]}, config.SECRET, algorithm='HS256')
+    return {
+        'token': token
+    }
 
 
 @app.post('/register')
@@ -77,9 +109,10 @@ def register(username: str = Body(...), password: str = Body(...)):
         DBAction.fetchone,
     )
     if user:
-        return {
-            'error': 'Пользователь уже существует'
-        }
+        raise HTTPException(
+            status_code=400,
+            detail='Пользователь уже существует'
+        )
 
     return db_action(
         '''
@@ -90,4 +123,5 @@ def register(username: str = Body(...), password: str = Body(...)):
     )
 
 
-uvicorn.run(app)
+if __name__ == '__main__':
+    uvicorn.run('main:app', reload=True)
