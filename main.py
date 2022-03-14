@@ -5,6 +5,7 @@ import jose.exceptions
 import uvicorn
 from fastapi import FastAPI, Body, Depends, Header
 from fastapi.exceptions import HTTPException
+from fastapi.responses import HTMLResponse
 from jose import jwt
 
 import config
@@ -74,8 +75,9 @@ def get_user(authorization: str = Header(...)):
 
 
 @app.get('/')
-def index(user: list = Depends(get_user)):
-    return user[1]
+def index():
+    with open('index.html', 'r', encoding='utf-8') as f:
+        return HTMLResponse(f.read())
 
 
 @app.post('/login')
