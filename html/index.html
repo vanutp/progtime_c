@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Крутой сайт</title>
+</head>
+<body>
+    <script>
+        async function main() {
+            let token = localStorage.getItem('token')
+            let resp = await fetch('/api/ping', {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            let data = await resp.json()
+            console.log(data)
+        }
+        main()
+    </script>
+</body>
+</html>

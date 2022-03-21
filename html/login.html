@@ -29,7 +29,11 @@
                 })
             })
             let data = await resp.json()
-            console.log(data)
+            let token = data['token']
+
+            localStorage.setItem('token', token)
+
+            window.location = '/'
         }
     </script>
 </body>
