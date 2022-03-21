@@ -3,7 +3,7 @@ from enum import Enum, auto
 
 import jose.exceptions
 import uvicorn
-from fastapi import FastAPI, Body, Depends, Header
+from fastapi import FastAPI, Body, Header
 from fastapi.exceptions import HTTPException
 from fastapi.responses import HTMLResponse
 from jose import jwt
@@ -74,13 +74,22 @@ def get_user(authorization: str = Header(...)):
     return user
 
 
-@app.get('/')
-def index():
-    with open('index.html', 'r', encoding='utf-8') as f:
+def send_html(name: str):
+    with open(f'html/{name}.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(f.read())
 
 
-@app.post('/login')
+@app.get('/login')
+def login_page():
+    return send_html('login')
+
+
+@app.get('/register')
+def register_page():
+    return send_html('register')
+
+
+@app.post('/api/login')
 def login(username: str = Body(...), password: str = Body(...)):
     user = db_action(
         '''
@@ -101,7 +110,7 @@ def login(username: str = Body(...), password: str = Body(...)):
     }
 
 
-@app.post('/register')
+@app.post('/api/register')
 def register(username: str = Body(...), password: str = Body(...)):
     user = db_action(
         '''
@@ -116,13 +125,17 @@ def register(username: str = Body(...), password: str = Body(...)):
             detail='Пользователь уже существует'
         )
 
-    return db_action(
+    db_action(
         '''
             insert into users (username, password) values (?, ?)
         ''',
         (username, password),
         DBAction.commit,
     )
+
+    return {
+        'message': 'Успешная регистрация'
+    }
 
 
 if __name__ == '__main__':
