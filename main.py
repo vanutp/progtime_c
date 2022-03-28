@@ -1,5 +1,4 @@
 import sqlite3
-from enum import Enum, auto
 
 import jose.exceptions
 import uvicorn
@@ -9,33 +8,10 @@ from fastapi.responses import HTMLResponse
 from jose import jwt
 
 import config
+from utils import db_action, DBAction, run_code
+from task_checker import get_task
 
 app = FastAPI()
-
-
-class DBAction(Enum):
-    fetchone = auto()
-    fetchall = auto()
-    commit = auto()
-
-
-def db_action(sql: str, args: tuple, action: DBAction):
-    conn = sqlite3.connect('db.sqlite')
-    cursor = conn.cursor()
-
-    cursor.execute(sql, args)
-    if action == DBAction.fetchone:
-        result = cursor.fetchone()
-    elif action == DBAction.fetchall:
-        result = cursor.fetchall()
-    elif action == DBAction.commit:
-        conn.commit()
-        result = None
-
-    cursor.close()
-    conn.close()
-
-    return result
 
 
 @app.on_event('startup')
@@ -48,6 +24,14 @@ def create_db():
             id integer primary key,
             username varchar not null,
             password varchar not null
+        );
+    ''')
+    cursor.execute('''
+        create table if not exists tasks (
+            id integer primary key,
+            name varchar not null,
+            description varchar,
+            output varchar not null
         );
     ''')
 
@@ -99,6 +83,16 @@ def ping(user: list = Depends(get_user)):
     return {
         'response': 'Pong',
         'username': user[1],
+    }
+
+
+@app.post('/api/execute')
+def execute(
+    user: list = Depends(get_user),
+    code: str = Body(..., embed=True),
+):
+    return {
+        'result': run_code(code),
     }
 
 
