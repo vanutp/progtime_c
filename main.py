@@ -9,7 +9,6 @@ from jose import jwt
 
 import config
 from utils import db_action, DBAction, run_code
-from task_checker import get_task
 
 app = FastAPI()
 
@@ -88,8 +87,8 @@ def ping(user: list = Depends(get_user)):
 
 @app.post('/api/execute')
 def execute(
-    user: list = Depends(get_user),
-    code: str = Body(..., embed=True),
+        user: list = Depends(get_user),
+        code: str = Body(..., embed=True),
 ):
     return {
         'result': run_code(code),
