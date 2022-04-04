@@ -36,6 +36,7 @@ def run_code(code: str):
     filename = f'codes/{filename}.py'
     with open(filename, 'w') as f:
         f.write(code)
+
     process = subprocess.Popen(
         ['python', filename],
         stdout=subprocess.PIPE,

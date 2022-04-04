@@ -1,3 +1,5 @@
+from typing import Optional
+
 from utils import db_action, DBAction, run_code
 
 
@@ -35,7 +37,7 @@ class Task:
         )
 
     @staticmethod
-    def get(task_id: int) -> 'Task':
+    def get(task_id: int) -> 'Optional[Task]':
         db_task = db_action(
             '''
                 select * from tasks where id = ?
@@ -43,11 +45,31 @@ class Task:
             (task_id,),
             DBAction.fetchone,
         )
+
+        if db_task is None:
+            return None
+
         task = Task(db_task[0], db_task[1], db_task[2], db_task[3])
         return task
 
+    @staticmethod
+    def all() -> 'list[Task]':
+        db_tasks = db_action(
+            '''
+                select * from tasks
+            ''',
+            (),
+            DBAction.fetchall,
+        )
+
+        tasks = []
+        for db_task in db_tasks:
+            tasks.append(Task(db_task[0], db_task[1], db_task[2], db_task[3]))
+        return tasks
+
     def check_solution(self, code: str) -> bool:
         output = run_code(code)
+        output = output.replace('\r', '')
         if output[-1] == '\n':
             output = output[:-1]
         return output == self.output

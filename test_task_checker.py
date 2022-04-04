@@ -3,7 +3,7 @@ from task_checker import Task
 
 def main():
     task = Task.get(1)
-    result = task.check_solution("print('Hello, world!')")
+    result = task.check_solution("print('Hello, world!\\ntest')")
     print(result)
 
 

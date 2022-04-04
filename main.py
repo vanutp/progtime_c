@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from jose import jwt
 
 import config
+from task_checker import Task
 from utils import db_action, DBAction, run_code
 
 app = FastAPI()
@@ -142,6 +143,22 @@ def register(username: str = Body(...), password: str = Body(...)):
     return {
         'message': 'Успешная регистрация'
     }
+
+
+@app.get('/api/tasks')
+def get_tasks(
+        user: list = Depends(get_user),
+):
+    return Task.all()
+
+
+@app.post('/api/send_task')
+def send_task(
+    user: list = Depends(get_user),
+    task_id: int = Body(..., embed=True),
+    code: str = Body(..., embed=True),
+) -> bool:
+    ...
 
 
 if __name__ == '__main__':
