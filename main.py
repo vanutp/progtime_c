@@ -68,6 +68,11 @@ def index():
     return send_html('index')
 
 
+@app.get('/tasks')
+def tasks():
+    return send_html('tasks')
+
+
 @app.get('/login')
 def login_page():
     return send_html('login')
@@ -157,8 +162,12 @@ def send_task(
     user: list = Depends(get_user),
     task_id: int = Body(..., embed=True),
     code: str = Body(..., embed=True),
-) -> bool:
-    ...
+):
+    task = Task.get(task_id)
+    result = task.check_solution(code)
+    return {
+        'result': result
+    }
 
 
 if __name__ == '__main__':
