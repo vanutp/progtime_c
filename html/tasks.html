@@ -19,11 +19,32 @@
 
     <script>
         let tasks
+        let current_task_id
 
-        function load_task(task_id) {
+        async function execute() {
+          let code = document.getElementById('code').value
+          let token = localStorage.getItem('token')
+          let resp = await fetch('/api/send_task', {
+            method: 'POST',
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              'task_id': current_task_id,
+              'code': code,
+            }),
+          })
+          let data = await resp.json()
+
+          document.getElementById('result').value = JSON.stringify(data['result'])
+        }
+
+        function load_task(new_task_id) {
+          current_task_id = new_task_id
           let task
           for (let i = 0; i < tasks.length; i++) {
-            if (tasks[i]['id'] == task_id) {
+            if (tasks[i]['id'] == new_task_id) {
               task = tasks[i]
             }
           }

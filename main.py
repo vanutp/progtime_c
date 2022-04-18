@@ -31,7 +31,7 @@ def create_db():
             id integer primary key,
             name varchar not null,
             description varchar,
-            output varchar not null
+            tests varchar not null
         );
     ''')
 
